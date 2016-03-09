@@ -1,0 +1,1 @@
+Add getDimensions method on LegoEntity, instead of duplicating code.

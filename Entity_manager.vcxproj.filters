@@ -103,6 +103,9 @@
     <ClInclude Include="Motor2D\EntityManager.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Motor2D\LegoEntity.h">
+      <Filter>Modules\Entities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -120,10 +123,18 @@
     <Filter Include="Tools\PugiXML">
       <UniqueIdentifier>{8a565efc-6239-44f7-92b8-b1e615e39968}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modules\Entities">
+      <UniqueIdentifier>{f3f9be45-4c61-428e-ba4e-759120cc7672}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="Game\config.xml">
       <Filter>External resources</Filter>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ToDoS.txt">
+      <Filter>External resources</Filter>
+    </Text>
   </ItemGroup>
 </Project>

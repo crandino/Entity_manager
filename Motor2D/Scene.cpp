@@ -6,6 +6,8 @@
 #include "Audio.h"
 #include "Render.h"
 #include "Window.h"
+#include "EntityManager.h"
+#include "LegoEntity.h"
 #include "Scene.h"
 
 Scene::Scene() : Module()
@@ -66,6 +68,15 @@ bool Scene::update(float dt)
 
 	if (app->input->getKey(SDL_SCANCODE_KP_MINUS) == KEY_UP)
 		app->audio->volumeDown();
+
+	// All EntityManager stuff...
+	//printf("%d\n",app->entity_manager->getID(bader));
+	if (app->input->getMouseButtonDown(SDL_BUTTON_LEFT) == KEY_DOWN)
+	{
+		LEGO_TYPE type = static_cast<LEGO_TYPE>(rand() % NUM_OF_CHARACTERS);
+		iPoint p;  app->input->getMousePosition(p);
+		app->entity_manager->add(p, type);
+	}
 
 	return true;
 }

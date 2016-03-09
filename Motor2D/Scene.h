@@ -4,6 +4,7 @@
 #include "Module.h"
 
 struct SDL_Texture;
+class LegoEntity;
 
 class Scene : public Module
 {
@@ -33,6 +34,8 @@ public:
 	bool cleanUp();
 
 private:
+
+	LegoEntity* bader;
 
 };
 
