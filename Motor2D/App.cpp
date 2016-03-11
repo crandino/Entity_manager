@@ -8,6 +8,8 @@
 #include "Audio.h"
 #include "Scene.h"
 #include "FileSystem.h"
+#include "Maps.h"
+#include "PathFinding.h"
 #include "EntityManager.h"
 #include "App.h"
 
@@ -26,6 +28,8 @@ App::App(int argc, char* args[]) : argc(argc), args(args)
 	audio = new Audio();
 	scene = new Scene();
 	fs = new FileSystem();
+	map = new Maps();
+	path = new PathFinding();
 	entity_manager = new EntityManager();
 
 	// Ordered for awake / start / update
@@ -35,6 +39,8 @@ App::App(int argc, char* args[]) : argc(argc), args(args)
 	addModule(win);
 	addModule(tex);
 	addModule(audio);
+	addModule(path);
+	addModule(map);
 	addModule(entity_manager);
 	
 	addModule(scene);
@@ -186,11 +192,11 @@ void App::finishUpdate()
 		last_frames = frame_count;
 	}
 
-	static char title[256];
+	/*static char title[256];
 	sprintf_s(title, 256, "Av.FPS: %.2f Last sec frames: %u Last dt: %u Time since startup: %.3f Frame Count: %lu ",
 		avg_fps, frames_on_last_update, last_frame_ms, seconds_since_startup, frame_count);
 
-	app->win->setTitle(title);
+	app->win->setTitle(title);*/
 
 	// Delay to achieve cap framerate
 	if (frame_rate != 0)
@@ -200,7 +206,7 @@ void App::finishUpdate()
 			Uint32 delay = (1000.0f / frame_rate) - last_frame_ms;
 			perf_timer.start();
 			SDL_Delay(delay);
-			LOG("Time to delay: %d , Time delayed %f", delay, perf_timer.readMs());
+			//LOG("Time to delay: %d , Time delayed %f", delay, perf_timer.readMs());
 		}						
 	}	
 }

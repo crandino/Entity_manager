@@ -7,7 +7,9 @@
 #include "Render.h"
 #include "Window.h"
 #include "EntityManager.h"
+#include "PathFinding.h"
 #include "LegoEntity.h"
+#include "Maps.h"
 #include "Scene.h"
 
 Scene::Scene() : Module()
@@ -31,6 +33,12 @@ bool Scene::awake(pugi::xml_node &node)
 // Called before the first frame
 bool Scene::start()
 {
+	app->map->load("lego_map.tmx");
+	uchar *buffer = NULL;
+	int width, height;
+	if (app->map->createWalkabilityMap(width, height, &buffer))
+		app->path->setMap(width, height, buffer);
+
 	return true;
 }
 
@@ -43,37 +51,14 @@ bool Scene::preUpdate()
 // Called each loop iteration
 bool Scene::update(float dt)
 {
-	float cam_speed = 1.0f;
-
-	/*if (app->input->getKey(SDL_SCANCODE_L) == KEY_DOWN)
-		app->loadGame("save_game.xml");
-
-	if (app->input->getKey(SDL_SCANCODE_K) == KEY_DOWN)
-		app->saveGame("save_game.xml");*/
-
-	if (app->input->getKey(SDL_SCANCODE_UP) == KEY_REPEAT)
-		app->render->camera.y += cam_speed;
-
-	if (app->input->getKey(SDL_SCANCODE_DOWN) == KEY_REPEAT)
-		app->render->camera.y -= cam_speed;
-
-	if (app->input->getKey(SDL_SCANCODE_LEFT) == KEY_REPEAT)
-		app->render->camera.x += cam_speed;
-
-	if (app->input->getKey(SDL_SCANCODE_RIGHT) == KEY_REPEAT)
-		app->render->camera.x -= cam_speed;
-
-	if (app->input->getKey(SDL_SCANCODE_KP_PLUS) == KEY_UP)
-		app->audio->volumeUp();
-
-	if (app->input->getKey(SDL_SCANCODE_KP_MINUS) == KEY_UP)
-		app->audio->volumeDown();
-
 	// All EntityManager stuff...
-	//printf("%d\n",app->entity_manager->getID(bader));
+	
+	// LEGO map drawing...
+	app->map->draw();
+
 	if (app->input->getMouseButtonDown(SDL_BUTTON_LEFT) == KEY_DOWN)
 	{
-		LEGO_TYPE type = static_cast<LEGO_TYPE>(rand() % NUM_OF_CHARACTERS);
+		LEGO_TYPE type = static_cast<LEGO_TYPE>(rand() % NUM_OF_BRICKS);
 		iPoint p;  app->input->getMousePosition(p);
 		app->entity_manager->add(p, type);
 	}

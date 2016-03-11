@@ -41,6 +41,12 @@
     <ClCompile Include="Motor2D\EntityManager.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Motor2D\Maps.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Motor2D\PathFinding.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Motor2D\App.h">
@@ -106,6 +112,12 @@
     <ClInclude Include="Motor2D\LegoEntity.h">
       <Filter>Modules\Entities</Filter>
     </ClInclude>
+    <ClInclude Include="Motor2D\Maps.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Motor2D\PathFinding.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -136,5 +148,10 @@
     <Text Include="ToDoS.txt">
       <Filter>External resources</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Game\maps\lego_map.tmx">
+      <Filter>External resources</Filter>
+    </None>
   </ItemGroup>
 </Project>

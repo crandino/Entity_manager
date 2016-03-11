@@ -67,7 +67,7 @@ bool Window::awake(pugi::xml_node &node)
 		{
 			//Get window surface
 			screen_surface = SDL_GetWindowSurface(window);
-			setTitle(node.child("name").child_value());
+			//setTitle(node.child("name").child_value());
 		}
 	}
 

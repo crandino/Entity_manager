@@ -15,6 +15,8 @@ class Textures;
 class Audio;
 class FileSystem;
 class EntityManager;
+class PathFinding;
+class Maps;
 class Scene;
 
 class App
@@ -86,6 +88,8 @@ public:
 	Audio*				audio;
 	Scene*				scene;
 	FileSystem*			fs;
+	PathFinding*		path;
+	Maps*				map;
 	EntityManager*		entity_manager;
 
 private:

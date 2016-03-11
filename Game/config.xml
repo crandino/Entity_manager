@@ -8,13 +8,17 @@
   <!-- Each module has its own node. Separate configuration -->
 
   <window>
-    <resolution width="1366" height="768" scale="1"  />
+    <resolution width="1216" height="800" scale="1"  />
     <properties borderless='false'
                 fullscreen='false' 
                 resizable='false'
                 windowed='false' />
     <name>StarCraft</name>
   </window>
+
+  <map>
+    <folder>maps/</folder>
+  </map>
 
   <render vsync='false'>
   </render>

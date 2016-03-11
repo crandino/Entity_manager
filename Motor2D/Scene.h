@@ -35,8 +35,6 @@ public:
 
 private:
 
-	LegoEntity* bader;
-
 };
 
 #endif // __SCENE_H__
