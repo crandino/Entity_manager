@@ -67,6 +67,7 @@ public:
 		tmp = app->map->mapToWorld(tmp.x, tmp.y);
 		dim.x = tmp.x;
 		dim.y = tmp.y;
+		behaviour = 1;
 
 		type = YELLOW;
 	}
@@ -85,6 +86,7 @@ public:
 		tmp = app->map->mapToWorld(tmp.x, tmp.y);
 		dim.x = tmp.x;
 		dim.y = tmp.y;
+		behaviour = 1;
 
 		type = GREEN;
 	}
@@ -104,6 +106,7 @@ public:
 		tmp = app->map->mapToWorld(tmp.x, tmp.y);
 		dim.x = tmp.x;
 		dim.y = tmp.y;
+		behaviour = 1;
 			
 		type = ORANGE;
 	}
@@ -122,6 +125,7 @@ public:
 		tmp = app->map->mapToWorld(tmp.x, tmp.y);
 		dim.x = tmp.x;
 		dim.y = tmp.y;
+		behaviour = 2;
 
 		type = LIGHTBLUE;
 	}
@@ -139,6 +143,7 @@ public:
 		tmp = app->map->mapToWorld(tmp.x, tmp.y);
 		dim.x = tmp.x;
 		dim.y = tmp.y;
+		behaviour = 2;
 
 		type = BLUE;
 	}
@@ -156,6 +161,7 @@ public:
 		tmp = app->map->mapToWorld(tmp.x, tmp.y);
 		dim.x = tmp.x;
 		dim.y = tmp.y;
+		behaviour = 2;
 
 		type = DARKBLUE;
 	}
@@ -173,6 +179,7 @@ public:
 		tmp = app->map->mapToWorld(tmp.x, tmp.y);
 		dim.x = tmp.x;
 		dim.y = tmp.y;
+		behaviour = 3;
 
 		type = VIOLET;
 	}
@@ -191,6 +198,7 @@ public:
 		tmp = app->map->mapToWorld(tmp.x, tmp.y);
 		dim.x = tmp.x;
 		dim.y = tmp.y;
+		behaviour = 3;
 
 		type = RED;
 	}
@@ -209,6 +217,7 @@ public:
 		tmp = app->map->mapToWorld(tmp.x, tmp.y);
 		dim.x = tmp.x;
 		dim.y = tmp.y;
+		behaviour = 3;
 
 		type = PINK;
 	}
@@ -227,6 +236,7 @@ public:
 		tmp = app->map->mapToWorld(tmp.x, tmp.y);
 		dim.x = tmp.x;
 		dim.y = tmp.y;
+		behaviour = 0;
 
 		type = DARKGRAY;
 	}
@@ -245,7 +255,8 @@ public:
 		tmp = app->map->mapToWorld(tmp.x, tmp.y);
 		dim.x = tmp.x;
 		dim.y = tmp.y;
-
+		behaviour = 0;
+		
 		type = GRAY;
 	}
 
@@ -263,7 +274,8 @@ public:
 		tmp = app->map->mapToWorld(tmp.x, tmp.y);
 		dim.x = tmp.x;
 		dim.y = tmp.y;
-
+		behaviour = 0;
+		
 		type = LIGHTGRAY;
 	}
 

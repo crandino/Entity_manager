@@ -145,11 +145,6 @@
     </Xml>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ToDoS.txt">
-      <Filter>External resources</Filter>
-    </Text>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Game\maps\lego_map.tmx">
       <Filter>External resources</Filter>
     </None>

@@ -5,6 +5,7 @@
 #include "DList.h"
 #include "DynArray.h"
 #include "Point2d.h"
+#include "SDL/include/SDL_rect.h"
 
 struct pathList;
 
@@ -63,6 +64,12 @@ public:
 
 	// GetLastPath: Returns order path step by step
 	const DynArray<iPoint> *getLastPath() const;
+
+	// WalkableAreaFrom: Returns all the PathNode from an starting point
+	void walkableAreaFrom(SDL_Rect &starting_area, pathList &close_list);
+
+	// Calculate the cost between to points
+	float costOfPath(const iPoint& origin, const iPoint& destination);
 
 	//Three utility methods :
 

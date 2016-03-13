@@ -38,15 +38,16 @@ public:
 
 	LegoEntity *add(iPoint &pos, LEGO_TYPE type);
 	bool remove(uint id);
-	int getID(const LegoEntity*);
+	LegoEntity* getEntity(uint id);
 
 	LegoEntity *whichEntityOnMouse();
 
 private:
 
-	map<uint, LegoEntity*>   active_entities;
-	map<uint, LegoEntity*> inactive_entities;
-	map<uint, LegoEntity*>         selection;
+	map<uint, LegoEntity*>               active_entities;
+	map<uint, LegoEntity*>             inactive_entities;
+	map<uint, LegoEntity*>                     selection;
+	multimap<float, LegoEntity*>       selection_ordered;
 	uint next_ID;
 
 	SDL_Rect			 selector;
@@ -54,11 +55,10 @@ private:
 	iPoint   initial_selector_pos;
 	iPoint     final_selector_pos;
 
-	
-	
 	void drawAll();
-	void selectAll();
+	void selectEntities(uchar filter = 127);
 	void calculateSelector();
+	void sortEntities();
 
 };
 

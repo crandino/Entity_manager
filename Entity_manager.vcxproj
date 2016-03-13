@@ -114,9 +114,6 @@
     <Xml Include="Game\config.xml" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ToDoS.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Game\maps\lego_map.tmx">
       <SubType>Designer</SubType>
     </None>

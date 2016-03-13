@@ -2,6 +2,7 @@
 #include "Input.h"
 #include "Maps.h"
 #include "App.h"
+#include "Render.h"
 #include "p2Log.h"
 
 // Two interesting links about PathFinding
@@ -130,6 +131,42 @@ bool PathFinding::setMap(const uint &width, const uint &height, uchar *data)
 	return true;
 }
 
+void PathFinding::walkableAreaFrom(SDL_Rect &starting_area, pathList &close_list)
+{
+	iPoint left_top_corner = app->map->worldToMap(starting_area.x, starting_area.y);
+	iPoint right_bottom_corner = app->map->worldToMap(starting_area.x + starting_area.w, starting_area.y + starting_area.h);
+
+	pathList open_list;
+
+	for (int i = left_top_corner.x; i <= right_bottom_corner.x; i++)
+	{
+		for (int j = left_top_corner.y; j <= right_bottom_corner.y; j++)
+		{
+			iPoint new_pos = { i, j };
+			if(isWalkable(new_pos))
+				open_list.list.add(pathNode(-1, -1, new_pos, NULL));
+		}
+	}
+
+	while (open_list.list.count() > 0)
+	{
+		doubleNode<pathNode> *pnode = open_list.list.getFirst();
+		pathList candidate_nodes;
+		pnode->data.findWalkableAdjacents(candidate_nodes);
+		doubleNode<pathNode> *item = candidate_nodes.list.getFirst();
+
+		close_list.list.add(pnode->data);
+		open_list.list.del(pnode);
+
+		while (item)
+		{
+			if (open_list.find(item->data.pos) == NULL && close_list.find(item->data.pos) == NULL)
+				open_list.list.add(item->data);
+			item = item->next;
+		}
+	}
+}
+
 int PathFinding::createPath(const iPoint& origin, const iPoint& destination)
 {
 	// Origin and destination are walkable?
@@ -197,6 +234,72 @@ int PathFinding::createPath(const iPoint& origin, const iPoint& destination)
 
 	return path_found.getNumElements();
 }
+
+float PathFinding::costOfPath(const iPoint& origin, const iPoint& destination)
+{
+	// Open and close list
+	pathList open_list, close_list;
+
+	open_list.list.add(pathNode(0, 0, origin, NULL));
+
+	while (open_list.list.count() > 0)
+	{
+		doubleNode<pathNode> *pnode = open_list.getNodeLowestScore();
+		close_list.list.add(pnode->data);
+		iPoint pos = pnode->data.pos;
+		open_list.list.del(pnode);
+		pnode = close_list.find(pos);
+
+		if (pnode->data.pos == destination)
+		{
+			close_list.list.add(pnode->data);
+			break;
+		}
+
+		pathList candidate_nodes;
+		int items_added = pnode->data.findWalkableAdjacents(candidate_nodes);
+		doubleNode<pathNode> *item = candidate_nodes.list.getLast();
+
+		for (int i = 0; i < items_added; i++)
+		{
+			if (close_list.find(item->data.pos))
+			{
+				item = item->previous;
+				continue;
+			}
+			else if (open_list.find(item->data.pos))
+			{
+				doubleNode<pathNode> *to_compare = open_list.find(item->data.pos);
+				if (item->data.calculateF(destination) < to_compare->data.score())
+				{
+					to_compare->data.parent = item->data.parent;
+					to_compare->data.calculateF(destination);
+				}
+			}
+			else
+			{
+				item->data.calculateF(destination);
+				open_list.list.add(item->data);
+			}
+			item = item->previous;
+		}
+	}
+
+	float cost = close_list.list.getLast()->data.g;
+	return cost;
+	//const pathNode *item = &(close_list.list.getLast()->data);
+	//while (item != NULL)
+	//{
+	//	cost += item->g;
+	//	//path_found.pushBack(item->pos);
+	//	item = item->parent;
+	//}
+
+	////path_found.flip();
+
+	//return cost;
+}
+
 
 const DynArray<iPoint> *PathFinding::getLastPath() const
 {

@@ -5,6 +5,7 @@
 #include "Window.h"
 #include "LegoEntity.h"
 #include "p2Log.h"
+#include <algorithm>
 
 EntityManager::EntityManager() : Module()
 {
@@ -32,6 +33,7 @@ bool EntityManager::start()
 // Called each loop iteration
 bool EntityManager::preUpdate()
 {
+	// Clicking middle button, eliminates an entity
 	if (app->input->getMouseButtonDown(SDL_BUTTON_MIDDLE) == KEY_DOWN)
 	{
 		iPoint p; app->input->getMousePosition(p);
@@ -39,23 +41,30 @@ bool EntityManager::preUpdate()
 		if (e != NULL) remove(e->id);		
 	}
 
+	// Clicking and holding right button, starts a selection
 	if (app->input->getMouseButtonDown(SDL_BUTTON_RIGHT) == KEY_DOWN)
 	{
 		selector_init = true;
 		selection.clear();
+		selection_ordered.clear();
 		app->input->getMousePosition(initial_selector_pos);
 	}
 
-	if (app->input->getMouseButtonDown(SDL_BUTTON_RIGHT) == KEY_REPEAT && selector_init)
+	// Holding right button, updates selector dimensions
+	if (selector_init && app->input->getMouseButtonDown(SDL_BUTTON_RIGHT) == KEY_REPEAT)
 	{
 		app->input->getMousePosition(final_selector_pos);
 		calculateSelector();
 	}		
 
+	// Once released right button, the selection is computed
 	if (app->input->getMouseButtonDown(SDL_BUTTON_RIGHT) == KEY_UP)
 	{
 		selector_init = false;
-		selectAll();
+		if (app->input->getKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT)
+			selectEntities(2);
+		else
+			selectEntities();
 	}
 			
 	return true;
@@ -70,15 +79,34 @@ bool EntityManager::postUpdate()
 	active_entities.size(), inactive_entities.size());
 	app->win->setTitle(title);
 
+	// Drawing selector (white rectangle)
+	if (selector_init) app->render->DrawQuad(selector, 255, 255, 255, 255, false);
+
+	// Entities drawing
 	map<uint, LegoEntity*>::iterator it = active_entities.begin();
 	for (; it != active_entities.end(); ++it)
 		it->second->draw();
 
+	// Basic selection. Entities surrounded by black rectangles.
 	it = selection.begin();
 	for (; it != selection.end(); ++it)
 		app->render->DrawQuad(it->second->dim, 0, 0, 0, 255, false);
 
-	if(selector_init) app->render->DrawQuad(selector, 255, 255, 255, 255, false);
+	// Drawing gradient color (red close to selection, blue for further entities) for ordered selection.
+	multimap<float, LegoEntity*>::iterator ito = selection_ordered.begin();
+	ito = selection_ordered.begin();
+	if (selection_ordered.size() != 0)
+	{
+		float distance = abs(selection_ordered.begin()->first - selection_ordered.rbegin()->first);
+		int blue, red;
+
+		for (; ito != selection_ordered.end(); ++ito)
+		{
+			blue = (int)((abs(ito->first - selection_ordered.begin()->first) / distance) * 255);
+			red = (int)((1 - abs(ito->first - selection_ordered.begin()->first) / distance) * 255);
+			app->render->DrawQuad(ito->second->dim, red, 0, blue, 255, true);
+		}
+	}
 
 	return true;
 }
@@ -88,11 +116,16 @@ bool EntityManager::cleanUp()
 {
 	map<uint, LegoEntity*>::iterator it = active_entities.begin();
 	for (; it != active_entities.end(); it++)
-	{
 		delete it->second;
-	}
+
+	it = inactive_entities.begin();
+	for (; it != inactive_entities.end(); it++)
+		delete it->second;
 
 	active_entities.clear();
+	inactive_entities.clear();
+	selection.clear();
+	selection_ordered.clear();
 
 	return true;
 }
@@ -111,7 +144,7 @@ LegoEntity *EntityManager::add(iPoint &pos, LEGO_TYPE type)
 			return lego; // No entity is created!
 	}
 
-	if (app->path->isWalkable(tile_pos))	// Can we add a new entity on that tile?
+	if (app->path->isWalkable(tile_pos))	// Can we add a new entity on that tile? i.e. Is that tile walkable?
 	{
 		switch (type)
 		{
@@ -165,12 +198,12 @@ LegoEntity *EntityManager::add(iPoint &pos, LEGO_TYPE type)
 // Remove an entity using its ID
 bool EntityManager::remove(uint id)
 {
-	map<uint, LegoEntity*>::iterator it = active_entities.find(id);
+	LegoEntity *e = getEntity(id);
 	
 	// Whether this ID really exists, then...
-	if (it != active_entities.end())
+	if (e != NULL)
 	{
-		inactive_entities.insert(*it);
+		inactive_entities.insert(pair<uint, LegoEntity*>(id, e));
 		active_entities.erase(id);
 		selection.erase(id);				
 		return true;
@@ -180,17 +213,13 @@ bool EntityManager::remove(uint id)
 }
 
 // Return ID for the corresponding entity
-int EntityManager::getID(const LegoEntity* entity)
+LegoEntity *EntityManager::getEntity(uint id)
 {
-	map<uint, LegoEntity*>::iterator it = active_entities.begin();
-	for (; it != active_entities.end(); it++)
-	{
-		if (entity == it->second) return it->first;
-	}
-	return -1;
+	map<uint, LegoEntity*>::iterator it = active_entities.find(id);
+	return (it != active_entities.end() ? it->second : NULL);
 }
 
-//
+// WhichEntityOnMouse: Returns an entity under the mouse cursor
 LegoEntity *EntityManager::whichEntityOnMouse()
 {
 	iPoint p; app->input->getMousePosition(p);
@@ -207,25 +236,32 @@ LegoEntity *EntityManager::whichEntityOnMouse()
 	return NULL;
 }
 
-void EntityManager::selectAll()
+void EntityManager::selectEntities(uchar filter)
 {
-	iPoint left_top_corner = app->map->worldToMap(selector.x, selector.y);
-	iPoint right_bottom_corner = app->map->worldToMap(selector.x + selector.w, selector.y + selector.h);
+	pathList area;
+	app->path->walkableAreaFrom(selector, area);
 
-	for (int i = left_top_corner.x; i <= right_bottom_corner.x; i++)
+	doubleNode<pathNode> *item = area.list.getFirst();
+	while (item)
 	{
-		for (int j = left_top_corner.y; j <= right_bottom_corner.y; j++)
+		map<uint, LegoEntity*>::iterator it = active_entities.begin();
+		for (; it != active_entities.end(); it++)
 		{
-			map<uint, LegoEntity*>::iterator it = active_entities.begin();
-			for (; it != active_entities.end(); it++)
+			if (it->second->tile_pos.x == item->data.pos.x && it->second->tile_pos.y == item->data.pos.y)
 			{
-				if (it->second->tile_pos.x == i && it->second->tile_pos.y == j)
-					selection.insert(pair<uint, LegoEntity*>(it->first,it->second));
-			}			
+				if (filter == 127)
+					selection.insert(pair<uint, LegoEntity*>(it->first, it->second));
+				else if (it->second->behaviour == filter)
+					selection.insert(pair<uint, LegoEntity*>(it->first, it->second));
+			}
 		}
+		item = item->next;
 	}
+
+	sortEntities();
 }
 
+// CalculateSelector: Method that computes the dimensions of the white rectangle selector.
 void EntityManager::calculateSelector()
 {
 	int selector_width = abs(final_selector_pos.x - initial_selector_pos.x);
@@ -233,4 +269,21 @@ void EntityManager::calculateSelector()
 	int selector_pos_x = (initial_selector_pos.x < final_selector_pos.x ? initial_selector_pos.x : final_selector_pos.x);
 	int selector_pos_y = (initial_selector_pos.y < final_selector_pos.y ? initial_selector_pos.y : final_selector_pos.y);
 	selector = { selector_pos_x, selector_pos_y, selector_width, selector_height };
+}
+
+void EntityManager::sortEntities()
+{
+	iPoint middle_point;
+	middle_point = app->map->worldToMap(((selector.x + selector.w) + selector.x) / 2, ((selector.y + selector.h) + selector.y) / 2);
+	map<uint, LegoEntity*>::iterator it = selection.begin();
+
+	for (; it != selection.end(); ++it)
+	{
+		iPoint dest = app->map->worldToMap(it->second->dim.x, it->second->dim.y);
+		float distance = app->path->costOfPath(middle_point, dest);
+	/*	float dx = abs(it->second->dim.x - middle_point.x);
+		float dy = abs(it->second->dim.y - middle_point.y);
+		float distance = sqrt(dx*dx + dy*dy);*/
+		selection_ordered.insert(pair<float, LegoEntity*>(distance, it->second));
+	}
 }
