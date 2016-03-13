@@ -49,6 +49,7 @@ private:
 	map<uint, LegoEntity*>                     selection;
 	multimap<float, LegoEntity*>       selection_ordered;
 	uint next_ID;
+	uchar filter;
 
 	SDL_Rect			 selector;
 	bool			selector_init;
@@ -56,7 +57,8 @@ private:
 	iPoint     final_selector_pos;
 
 	void drawAll();
-	void selectEntities(uchar filter = 127);
+	void selectAll(uchar filter);
+	void selectAvailableEntities(uchar filter);
 	void calculateSelector();
 	void sortEntities();
 

@@ -16,6 +16,7 @@ EntityManager::EntityManager() : Module()
 EntityManager::~EntityManager()
 {
 	next_ID = 0;
+	filter = 0;
 }
 
 // Called before render is available
@@ -33,6 +34,12 @@ bool EntityManager::start()
 // Called each loop iteration
 bool EntityManager::preUpdate()
 {
+	if (app->input->getKey(SDL_SCANCODE_0)) filter = 0;
+	if (app->input->getKey(SDL_SCANCODE_1)) filter = 1;
+	if (app->input->getKey(SDL_SCANCODE_2)) filter = 2;
+	if (app->input->getKey(SDL_SCANCODE_3)) filter = 3;
+	if (app->input->getKey(SDL_SCANCODE_4)) filter = 4;
+
 	// Clicking middle button, eliminates an entity
 	if (app->input->getMouseButtonDown(SDL_BUTTON_MIDDLE) == KEY_DOWN)
 	{
@@ -62,9 +69,9 @@ bool EntityManager::preUpdate()
 	{
 		selector_init = false;
 		if (app->input->getKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT)
-			selectEntities(2);
+			selectAvailableEntities(filter);
 		else
-			selectEntities();
+			selectAll(filter);
 	}
 			
 	return true;
@@ -78,9 +85,6 @@ bool EntityManager::postUpdate()
 	sprintf_s(title, 256, "Active bricks: %d  Inactive bricks: %d",
 	active_entities.size(), inactive_entities.size());
 	app->win->setTitle(title);
-
-	// Drawing selector (white rectangle)
-	if (selector_init) app->render->DrawQuad(selector, 255, 255, 255, 255, false);
 
 	// Entities drawing
 	map<uint, LegoEntity*>::iterator it = active_entities.begin();
@@ -97,16 +101,19 @@ bool EntityManager::postUpdate()
 	ito = selection_ordered.begin();
 	if (selection_ordered.size() != 0)
 	{
-		float distance = abs(selection_ordered.begin()->first - selection_ordered.rbegin()->first);
+		float max_distance = selection_ordered.rbegin()->first;
 		int blue, red;
 
 		for (; ito != selection_ordered.end(); ++ito)
 		{
-			blue = (int)((abs(ito->first - selection_ordered.begin()->first) / distance) * 255);
-			red = (int)((1 - abs(ito->first - selection_ordered.begin()->first) / distance) * 255);
+			blue = (int)((ito->first / max_distance) * 255);
+			red = 255 - blue;
 			app->render->DrawQuad(ito->second->dim, red, 0, blue, 255, true);
 		}
 	}
+
+	// Drawing selector (white rectangle)
+	if (selector_init) app->render->DrawQuad(selector, 255, 255, 255, 255, false);
 
 	return true;
 }
@@ -189,7 +196,6 @@ LegoEntity *EntityManager::add(iPoint &pos, LEGO_TYPE type)
 		// We add the new entity to the map of active entities. 
 		active_entities.insert(pair<uint, LegoEntity*>(++next_ID, lego));
 		lego->id = next_ID;
-		lego->tile_pos = tile_pos;
 	}		
 	
 	return lego;
@@ -205,7 +211,8 @@ bool EntityManager::remove(uint id)
 	{
 		inactive_entities.insert(pair<uint, LegoEntity*>(id, e));
 		active_entities.erase(id);
-		selection.erase(id);				
+		selection.erase(id); 
+		selection_ordered.clear();
 		return true;
 	}
 	else
@@ -220,7 +227,7 @@ LegoEntity *EntityManager::getEntity(uint id)
 }
 
 // WhichEntityOnMouse: Returns an entity under the mouse cursor
-LegoEntity *EntityManager::whichEntityOnMouse()
+LegoEntity *EntityManager::whichEntityOnMouse() 
 {
 	iPoint p; app->input->getMousePosition(p);
 
@@ -236,7 +243,32 @@ LegoEntity *EntityManager::whichEntityOnMouse()
 	return NULL;
 }
 
-void EntityManager::selectEntities(uchar filter)
+void EntityManager::selectAll(uchar filter)
+{
+	iPoint left_top, right_bottom;
+	left_top = app->map->worldToMap( selector.x, selector.y );
+	right_bottom = app->map->worldToMap(selector.x + selector.w, selector.y + selector.h);
+
+	for (uint x = left_top.x; x <= right_bottom.x; ++x)
+	{
+		for (uint y = left_top.y; y <= right_bottom.y; ++y)
+		{
+			map<uint, LegoEntity*>::iterator it = active_entities.begin();
+			for (; it != active_entities.end(); it++)
+			{
+				if (it->second->tile_pos.x == x && it->second->tile_pos.y == y)
+				{
+					if (filter == 0)
+						selection.insert(pair<uint, LegoEntity*>(it->first, it->second));
+					else if (it->second->behaviour == filter)
+						selection.insert(pair<uint, LegoEntity*>(it->first, it->second));
+				}
+			}
+		}
+	}
+}
+
+void EntityManager::selectAvailableEntities(uchar filter)
 {
 	pathList area;
 	app->path->walkableAreaFrom(selector, area);
@@ -249,7 +281,7 @@ void EntityManager::selectEntities(uchar filter)
 		{
 			if (it->second->tile_pos.x == item->data.pos.x && it->second->tile_pos.y == item->data.pos.y)
 			{
-				if (filter == 127)
+				if (filter == 0)
 					selection.insert(pair<uint, LegoEntity*>(it->first, it->second));
 				else if (it->second->behaviour == filter)
 					selection.insert(pair<uint, LegoEntity*>(it->first, it->second));
@@ -273,17 +305,13 @@ void EntityManager::calculateSelector()
 
 void EntityManager::sortEntities()
 {
-	iPoint middle_point;
-	middle_point = app->map->worldToMap(((selector.x + selector.w) + selector.x) / 2, ((selector.y + selector.h) + selector.y) / 2);
+	iPoint middle_point = app->map->worldToMap(((selector.x + selector.w) + selector.x) / 2, ((selector.y + selector.h) + selector.y) / 2);
 	map<uint, LegoEntity*>::iterator it = selection.begin();
 
 	for (; it != selection.end(); ++it)
 	{
 		iPoint dest = app->map->worldToMap(it->second->dim.x, it->second->dim.y);
 		float distance = app->path->costOfPath(middle_point, dest);
-	/*	float dx = abs(it->second->dim.x - middle_point.x);
-		float dy = abs(it->second->dim.y - middle_point.y);
-		float distance = sqrt(dx*dx + dy*dy);*/
 		selection_ordered.insert(pair<float, LegoEntity*>(distance, it->second));
 	}
 }

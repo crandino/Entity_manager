@@ -287,17 +287,6 @@ float PathFinding::costOfPath(const iPoint& origin, const iPoint& destination)
 
 	float cost = close_list.list.getLast()->data.g;
 	return cost;
-	//const pathNode *item = &(close_list.list.getLast()->data);
-	//while (item != NULL)
-	//{
-	//	cost += item->g;
-	//	//path_found.pushBack(item->pos);
-	//	item = item->parent;
-	//}
-
-	////path_found.flip();
-
-	//return cost;
 }
 
 
