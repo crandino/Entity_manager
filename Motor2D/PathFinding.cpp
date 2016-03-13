@@ -21,44 +21,38 @@ uint pathNode::findWalkableAdjacents(pathList& list_to_fill) const
 	iPoint new_pos;
 	uint items_added = 0;
 
-	//LOG(" Origin position : %d,%d", pos.x, pos.y);
 	//Nodes-- > North, West, South, East
 	new_pos.set(pos.x, pos.y - 1);
-	//LOG(" Tile %d,%d -> Walkability = %d", new_pos.x, new_pos.y, app->path->isWalkable(new_pos));
+	// North;
 	if (app->path->isWalkable(new_pos))
 	{
-		//pathNode node_N(-1, -1, new_pos, this);
 		items_added++;
 		list_to_fill.list.add(pathNode(-1, -1, new_pos, this));
 	}
 
 	new_pos.set(pos.x - 1, pos.y);
-	//LOG(" Tile %d,%d -> Walkability = %d", new_pos.x, new_pos.y, app->path->isWalkable(new_pos));
+	// West;
 	if (app->path->isWalkable(new_pos))
 	{
-		//pathNode node_W(-1, -1, new_pos, this);
 		items_added++;
 		list_to_fill.list.add(pathNode(-1, -1, new_pos, this));
 	}
 
 	new_pos.set(pos.x, pos.y + 1);
-	//LOG(" Tile %d,%d -> Walkability = %d", new_pos.x, new_pos.y, app->path->isWalkable(new_pos));
+	// South
 	if (app->path->isWalkable(new_pos))
 	{
-		//pathNode node_S(-1, -1, new_pos, this);
 		items_added++;
 		list_to_fill.list.add(pathNode(-1, -1, new_pos, this));
 	}
 
+	// East
 	new_pos.set(pos.x + 1, pos.y);
-	//LOG(" Tile %d,%d -> Walkability = %d", new_pos.x, new_pos.y, app->path->isWalkable(new_pos));
 	if (app->path->isWalkable(new_pos))
 	{
-		//pathNode node_E(-1, -1, new_pos, this);
 		items_added++;
 		list_to_fill.list.add(pathNode(-1, -1, new_pos, this));
 	}
-	//LOG(" ------------------------- ");
 
 	return items_added - items_before;
 }
@@ -298,9 +292,9 @@ const DynArray<iPoint> *PathFinding::getLastPath() const
 bool PathFinding::checkBoundaries(const iPoint& pos) const
 {
 	if (pos.x >= 0 &&
-		pos.x <= width &&
+		pos.x < width &&
 		pos.y >= 0 &&
-		pos.y <= height)
+		pos.y < height)
 		return true;
 	return false;
 }
